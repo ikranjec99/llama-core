@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "LlamaCore": {
+      "commandName": "Project"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker"
+    }
+  }
+}
