@@ -1,39 +1,25 @@
-﻿using Microsoft.Extensions.AI;
+﻿using LlamaCore.Core.Handlers;
+using LlamaCore.Extensions;
+using LlamaCore.Settings;
+using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System.Text.Json;
+
 
 var builder = Host.CreateApplicationBuilder();
 
-const string ollamaUri = "http://localhost:11434";
-const string ollamaModelId = "llama3";
+var appSettings = builder.Configuration.Get<AppSettings>();
 
-builder.Services.AddChatClient(
-    new OllamaChatClient(new Uri(ollamaUri), ollamaModelId)
-);
+Console.WriteLine(JsonSerializer.Serialize(appSettings));
+
+// Add services to the contianer.
+builder.Services.AddServices(appSettings);
 
 var app = builder.Build();
 
 var chatClient = app.Services.GetRequiredService<IChatClient>();
 
-// Start the conversation with context for the AI model
-List<ChatMessage> chatHistory = new();
+await ApplicationHandler.Run(chatClient);
 
-while (true)
-{
-    // Get user prompt and add to chat history
-    Console.WriteLine("Your prompt:");
-    var userPrompt = Console.ReadLine();
-    chatHistory.Add(new ChatMessage(ChatRole.User, userPrompt));
-
-    // Stream the AI response and add to chat history
-    Console.WriteLine("AI Response:");
-    var response = "";
-    await foreach (var item in
-        chatClient.GetStreamingResponseAsync(chatHistory))
-    {
-        Console.Write(item.Text);
-        response += item.Text;
-    }
-    chatHistory.Add(new ChatMessage(ChatRole.Assistant, response));
-    Console.WriteLine();
-}
