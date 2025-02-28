@@ -12,7 +12,8 @@ var builder = Host.CreateApplicationBuilder();
 
 var appSettings = builder.Configuration.Get<AppSettings>();
 
-Console.WriteLine(JsonSerializer.Serialize(appSettings));
+var options = new JsonSerializerOptions { WriteIndented = true };
+Console.WriteLine(JsonSerializer.Serialize(appSettings, options));
 
 // Add services to the contianer.
 builder.Services.AddServices(appSettings);
@@ -21,5 +22,4 @@ var app = builder.Build();
 
 var chatClient = app.Services.GetRequiredService<IChatClient>();
 
-await ApplicationHandler.Run(chatClient);
-
+await ApplicationHandler.RunAsync(chatClient);
