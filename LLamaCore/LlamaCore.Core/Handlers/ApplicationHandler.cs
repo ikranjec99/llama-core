@@ -1,32 +1,35 @@
 ﻿using Microsoft.Extensions.AI;
+using System.Text;
 
 namespace LlamaCore.Core.Handlers;
 
 public static class ApplicationHandler
 {
-    public async static Task Run(IChatClient client)
+    public static async Task RunAsync(IChatClient client)
     {
-        // Start the conversation with context for the AI model
-        List<ChatMessage> chatHistory = new();
+        var chatHistory = new List<ChatMessage>();
 
         while (true)
         {
-            // Get user prompt and add to chat history
-            Console.WriteLine("Your prompt:");
+            Console.Write("Ask me anything: ");
             string? userPrompt = Console.ReadLine();
+
+            if (string.IsNullOrWhiteSpace(userPrompt))
+                return; // Skip empty input
+
             chatHistory.Add(new ChatMessage(ChatRole.User, userPrompt));
 
-            // Stream the AI response and add to chat history
-            Console.WriteLine("AI Response:");
-            string response = "";
-            await foreach (var item in
-                client.GetStreamingResponseAsync(chatHistory))
+            Console.Write("AI Response: ");
+            var responseBuilder = new StringBuilder();
+
+            await foreach (var item in client.GetStreamingResponseAsync(chatHistory))
             {
                 Console.Write(item.Text);
-                response += item.Text;
+                responseBuilder.Append(item.Text);
             }
-            chatHistory.Add(new ChatMessage(ChatRole.Assistant, response));
+
             Console.WriteLine();
+            chatHistory.Add(new ChatMessage(ChatRole.Assistant, responseBuilder.ToString()));
         }
     }
 }
